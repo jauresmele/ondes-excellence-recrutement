@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Formulaires de candidature — Ondes d'Excellence</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; background: #f0f4f8; color: #222; }
+
+  .page-header {
+    background: linear-gradient(135deg, #1565C0, #0288D1);
+    color: white; text-align: center; padding: 32px 20px;
+  }
+  .page-header h1 { font-size: 28px; margin-bottom: 8px; }
+  .page-header p { font-size: 15px; opacity: 0.85; font-style: italic; }
+
+  .tabs {
+    display: flex; max-width: 900px; margin: 24px auto 0;
+    border-radius: 8px 8px 0 0; overflow: hidden;
+  }
+  .tab {
+    flex: 1; padding: 14px; text-align: center; font-weight: bold;
+    font-size: 15px; cursor: pointer; transition: all 0.2s;
+    border-bottom: 4px solid transparent;
+  }
+  .tab.animateur { background: #E3F2FD; color: #1565C0; }
+  .tab.animateur.active { background: #1565C0; color: white; border-bottom-color: #F9A825; }
+  .tab.commercial { background: #FFF3E0; color: #E65100; }
+  .tab.commercial.active { background: #E65100; color: white; border-bottom-color: #F9A825; }
+
+  .form-container {
+    max-width: 900px; margin: 0 auto 40px;
+    background: white; border-radius: 0 0 12px 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.10); padding: 32px;
+    display: none;
+  }
+  .form-container.active { display: block; }
+
+  .form-header {
+    border-left: 6px solid; padding: 16px 20px; margin-bottom: 28px;
+    border-radius: 0 8px 8px 0;
+  }
+  .form-header.bleu { border-color: #1565C0; background: #E3F2FD; }
+  .form-header.orange { border-color: #E65100; background: #FFF3E0; }
+  .form-header h2 { font-size: 22px; margin-bottom: 6px; }
+  .form-header.bleu h2 { color: #1565C0; }
+  .form-header.orange h2 { color: #E65100; }
+  .form-header p { font-size: 14px; color: #555; }
+
+  .section-title {
+    font-size: 16px; font-weight: bold; margin: 28px 0 16px;
+    padding: 10px 16px; border-radius: 6px; color: white;
+  }
+  .section-title.bleu { background: #1565C0; }
+  .section-title.orange { background: #E65100; }
+
+  .field { margin-bottom: 20px; }
+  .field label {
+    display: block; font-size: 14px; font-weight: bold;
+    margin-bottom: 6px; color: #333;
+  }
+  .required { color: #B71C1C; margin-left: 3px; }
+  .field input, .field select, .field textarea {
+    width: 100%; padding: 10px 14px; border: 2px solid #ddd;
+    border-radius: 6px; font-size: 14px; font-family: Arial, sans-serif;
+    transition: border-color 0.2s;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus {
+    outline: none; border-color: #1565C0;
+  }
+  .field.orange input:focus, .field.orange select:focus, .field.orange textarea:focus {
+    border-color: #E65100;
+  }
+  .field textarea { min-height: 100px; resize: vertical; }
+  .field .hint { font-size: 12px; color: #888; margin-top: 4px; font-style: italic; }
+
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 600px) { .row { grid-template-columns: 1fr; } }
+
+  .radio-group, .checkbox-group { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; }
+  .radio-group label, .checkbox-group label {
+    display: flex; align-items: center; gap: 10px;
+    font-weight: normal; cursor: pointer; padding: 8px 12px;
+    border: 2px solid #eee; border-radius: 6px; transition: all 0.2s;
+  }
+  .radio-group label:hover, .checkbox-group label:hover { border-color: #1565C0; background: #f5f9ff; }
+  .radio-group input, .checkbox-group input { width: auto; margin: 0; }
+
+  .upload-area {
+    border: 2px dashed #ddd; border-radius: 8px; padding: 20px;
+    text-align: center; color: #888; font-size: 13px; margin-top: 6px;
+    background: #fafafa;
+  }
+  .upload-area input { display: none; }
+  .upload-btn {
+    display: inline-block; padding: 8px 20px; border-radius: 6px;
+    font-size: 13px; font-weight: bold; cursor: pointer; margin-top: 8px;
+    border: none; color: white;
+  }
+  .upload-btn.bleu { background: #1565C0; }
+  .upload-btn.orange { background: #E65100; }
+
+  .submit-btn {
+    width: 100%; padding: 16px; border: none; border-radius: 8px;
+    font-size: 17px; font-weight: bold; color: white; cursor: pointer;
+    margin-top: 28px; transition: opacity 0.2s;
+  }
+  .submit-btn:hover { opacity: 0.88; }
+  .submit-btn.bleu { background: linear-gradient(135deg, #1565C0, #0288D1); }
+  .submit-btn.orange { background: linear-gradient(135deg, #E65100, #F9A825); }
+
+  .gdrive-note {
+    background: #E8F5E9; border: 1px solid #4CAF50; border-radius: 8px;
+    padding: 14px 18px; margin-bottom: 24px; font-size: 13px; color: #1B5E20;
+  }
+  .gdrive-note strong { display: block; margin-bottom: 4px; font-size: 14px; }
+
+  .success-msg {
+    display: none; background: #E8F5E9; border: 2px solid #4CAF50;
+    border-radius: 8px; padding: 24px; text-align: center; margin-top: 20px;
+  }
+  .success-msg h3 { color: #1B5E20; font-size: 20px; margin-bottom: 8px; }
+  .success-msg p { color: #2E7D32; font-size: 14px; }
+
+  .note-remuneration {
+    background: #FFF8E1; border: 1px solid #F9A825; border-radius: 8px;
+    padding: 14px 18px; margin-bottom: 20px; font-size: 13px; color: #333;
+  }
+  .note-remuneration strong { color: #E65100; }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>🎙️ ONDES D'EXCELLENCE 🇧🇯</h1>
+  <p>Formulaires de candidature — Recrutement Mai 2026 — Bohicon / Abomey</p>
+</div>
+
+<div class="tabs">
+  <div class="tab animateur active" onclick="showTab('animateur')">🎙️ Animateur(trice) Radio</div>
+  <div class="tab commercial" onclick="showTab('commercial')">💼 Agent Commercial Freelance</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- FORMULAIRE ANIMATEUR -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="form-container active" id="form-animateur">
+
+  <div class="form-header bleu">
+    <h2>🎙️ Candidature — Animateur(trice) Radio</h2>
+    <p>Poste à temps plein — Bohicon / Abomey | Date limite : 15 mai 2026</p>
+  </div>
+
+  <div class="gdrive-note">
+    <strong>📁 Vos fichiers seront enregistrés dans Google Drive</strong>
+    Une fois soumis, votre candidature sera automatiquement transmise à l'équipe Ondes d'Excellence. Vous recevrez une confirmation par WhatsApp.
+  </div>
+
+  <form id="formAnimateur" onsubmit="submitForm(event, 'animateur')">
+
+    <div class="section-title bleu">1. Informations personnelles</div>
+
+    <div class="row">
+      <div class="field">
+        <label>Nom <span class="required">*</span></label>
+        <input type="text" name="nom" required placeholder="Votre nom de famille">
+      </div>
+      <div class="field">
+        <label>Prénom(s) <span class="required">*</span></label>
+        <input type="text" name="prenom" required placeholder="Vos prénoms">
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label>Date de naissance <span class="required">*</span></label>
+        <input type="date" name="date_naissance" required>
+      </div>
+      <div class="field">
+        <label>Sexe <span class="required">*</span></label>
+        <select name="sexe" required>
+          <option value="">-- Sélectionner --</option>
+          <option>Masculin</option>
+          <option>Féminin</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label>Numéro WhatsApp <span class="required">*</span></label>
+        <input type="tel" name="whatsapp" required placeholder="+229 XX XX XX XX">
+        <p class="hint">Nous vous contacterons sur ce numéro pour la suite du processus</p>
+      </div>
+      <div class="field">
+        <label>Email</label>
+        <input type="email" name="email" placeholder="votre@email.com">
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Ville de résidence <span class="required">*</span></label>
+      <select name="ville" required>
+        <option value="">-- Sélectionner --</option>
+        <option>Bohicon</option>
+        <option>Abomey</option>
+        <option>Agbangnizoun</option>
+        <option>Covè</option>
+        <option>Autre commune du Zou</option>
+        <option>Cotonou</option>
+        <option>Autre</option>
+      </select>
+    </div>
+
+    <div class="section-title bleu">2. Formation et expérience</div>
+
+    <div class="field">
+      <label>Niveau de formation <span class="required">*</span></label>
+      <select name="formation" required>
+        <option value="">-- Sélectionner --</option>
+        <option>Baccalauréat</option>
+        <option>BTS / DUT / Licence professionnelle</option>
+        <option>Licence (BAC+3)</option>
+        <option>Master (BAC+5)</option>
+        <option>Autre formation certifiante</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Domaine de formation <span class="required">*</span></label>
+      <input type="text" name="domaine_formation" required placeholder="Ex : Communication, Journalisme, Lettres...">
+    </div>
+
+    <div class="field">
+      <label>Années d'expérience en animation ou production audio <span class="required">*</span></label>
+      <div class="radio-group">
+        <label><input type="radio" name="experience_audio" value="Aucune" required> Aucune expérience</label>
+        <label><input type="radio" name="experience_audio" value="Moins de 1 an"> Moins de 1 an</label>
+        <label><input type="radio" name="experience_audio" value="1 à 2 ans"> 1 à 2 ans</label>
+        <label><input type="radio" name="experience_audio" value="3 à 5 ans"> 3 à 5 ans</label>
+        <label><input type="radio" name="experience_audio" value="Plus de 5 ans"> Plus de 5 ans</label>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Décrivez vos expériences pertinentes (animation, radio, podcast, enseignement...) <span class="required">*</span></label>
+      <textarea name="experiences" required placeholder="Listez vos expériences avec les structures, durées et responsabilités exercées..."></textarea>
+    </div>
+
+    <div class="section-title bleu">3. Compétences et disponibilité</div>
+
+    <div class="field">
+      <label>Outils audio que vous maîtrisez</label>
+      <div class="checkbox-group">
+        <label><input type="checkbox" name="outils" value="Audacity"> Audacity</label>
+        <label><input type="checkbox" name="outils" value="Adobe Audition"> Adobe Audition</label>
+        <label><input type="checkbox" name="outils" value="GarageBand"> GarageBand</label>
+        <label><input type="checkbox" name="outils" value="Autre logiciel"> Autre logiciel de montage</label>
+        <label><input type="checkbox" name="outils" value="Aucun"> Aucun pour l'instant</label>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Avez-vous une expérience avec un public jeune (élèves, enfants) ? <span class="required">*</span></label>
+      <div class="radio-group">
+        <label><input type="radio" name="exp_jeunes" value="Oui, significative" required> Oui, significative (plus de 6 mois)</label>
+        <label><input type="radio" name="exp_jeunes" value="Oui, limitée"> Oui, mais limitée (quelques interventions)</label>
+        <label><input type="radio" name="exp_jeunes" value="Non"> Non, aucune expérience avec les jeunes</label>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Êtes-vous disponible immédiatement (mai 2026) ? <span class="required">*</span></label>
+      <div class="radio-group">
+        <label><input type="radio" name="disponibilite" value="Oui immédiatement" required> Oui, disponible immédiatement</label>
+        <label><input type="radio" name="disponibilite" value="Disponible à partir du"> Disponible à partir du ...</label>
+        <label><input type="radio" name="disponibilite" value="Non"> Non, pas disponible actuellement</label>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Pourquoi souhaitez-vous rejoindre Ondes d'Excellence ? <span class="required">*</span></label>
+      <textarea name="motivation" required placeholder="Exprimez votre motivation en 200 à 500 mots..." style="min-height: 140px;"></textarea>
+      <p class="hint">Maximum 500 mots — Soyez précis(e) et sincère</p>
+    </div>
+
+    <div class="section-title bleu">4. Documents à joindre</div>
+
+    <div class="field">
+      <label>CV (PDF obligatoire) <span class="required">*</span></label>
+      <div class="upload-area">
+        <div>📄 Glissez votre CV ici ou cliquez pour sélectionner</div>
+        <div style="font-size:12px;margin-top:4px;">Format PDF — Taille max : 5 Mo</div>
+        <input type="file" id="cv-animateur" name="cv" accept=".pdf" required>
+        <label for="cv-animateur" class="upload-btn bleu">Choisir le fichier</label>
+        <div id="cv-animateur-name" style="margin-top:8px;font-size:13px;color:#1565C0;"></div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Extrait audio de votre voix <span class="required">*</span></label>
+      <div class="upload-area">
+        <div>🎙️ Fichier audio MP3 ou M4A (2 à 3 minutes)</div>
+        <div style="font-size:12px;margin-top:4px;">Présentation libre ou lecture d'un texte — Taille max : 20 Mo</div>
+        <input type="file" id="audio-animateur" name="audio" accept=".mp3,.m4a,.wav,.ogg" required>
+        <label for="audio-animateur" class="upload-btn bleu">Choisir le fichier audio</label>
+        <div id="audio-animateur-name" style="margin-top:8px;font-size:13px;color:#1565C0;"></div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Lettre de motivation (optionnel)</label>
+      <div class="upload-area">
+        <div>📝 PDF ou document Word</div>
+        <input type="file" id="lettre-animateur" name="lettre" accept=".pdf,.doc,.docx">
+        <label for="lettre-animateur" class="upload-btn bleu">Choisir le fichier</label>
+        <div id="lettre-animateur-name" style="margin-top:8px;font-size:13px;color:#1565C0;"></div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Déclaration sur l'honneur <span class="required">*</span></label>
+      <div class="checkbox-group">
+        <label>
+          <input type="checkbox" name="declaration" required>
+          Je certifie que toutes les informations fournies dans ce formulaire sont exactes et sincères. Je comprends que toute fausse déclaration entraîne l'élimination de ma candidature.
+        </label>
+      </div>
+    </div>
+
+    <button type="submit" class="submit-btn bleu">🎙️ Soumettre ma candidature — Animateur(trice) Radio</button>
+  </form>
+
+  <div class="success-msg" id="success-animateur">
+    <h3>✅ Candidature reçue !</h3>
+    <p>Merci pour votre candidature au poste d'Animateur(trice) Radio.<br>
+    Vous recevrez une réponse par WhatsApp avant le 18 mai 2026.<br><br>
+    🎙️ <strong>Ondes d'Excellence — La radio qui élève.</strong></p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- FORMULAIRE AGENT COMMERCIAL -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="form-container" id="form-commercial">
+
+  <div class="form-header orange">
+    <h2>💼 Candidature — Agent Commercial Freelance</h2>
+    <p>Freelance à la commission — Bohicon / Abomey | Date limite : 15 mai 2026</p>
+  </div>
+
+  <div class="gdrive-note">
+    <strong>📁 Vos fichiers seront enregistrés dans Google Drive</strong>
+    Une fois soumis, votre candidature sera automatiquement transmise à l'équipe Ondes d'Excellence. Vous recevrez une confirmation par WhatsApp.
+  </div>
+
+  <div class="note-remuneration">
+    <strong>💰 Rappel du modèle de rémunération</strong>
+    Commission de 15 % sur chaque contrat école signé + prime fixe de 5 000 FCFA par annonceur radio signé.
+    Objectif minimal : 3 contrats écoles par mois. Aucun plafond — plus vous signez, plus vous gagnez.
+  </div>
+
+  <form id="formCommercial" onsubmit="submitForm(event, 'commercial')">
+
+    <div class="section-title orange">1. Informations personnelles</div>
+
+    <div class="row">
+      <div class="field orange">
+        <label>Nom <span class="required">*</span></label>
+        <input type="text" name="nom" required placeholder="Votre nom de famille">
+      </div>
+      <div class="field orange">
+        <label>Prénom(s) <span class="required">*</span></label>
+        <input type="text" name="prenom" required placeholder="Vos prénoms">
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="field orange">
+        <label>Date de naissance <span class="required">*</span></label>
+        <input type="date" name="date_naissance" required>
+      </div>
+      <div class="field orange">
+        <label>Sexe <span class="required">*</span></label>
+        <select name="sexe" required>
+          <option value="">-- Sélectionner --</option>
+          <option>Masculin</option>
+          <option>Féminin</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="field orange">
+        <label>Numéro WhatsApp <span class="required">*</span></label>
+        <input type="tel" name="whatsapp" required placeholder="+229 XX XX XX XX">
+        <p class="hint">Nous vous contacterons sur ce numéro pour la suite du processus</p>
+      </div>
+      <div class="field orange">
+        <label>Email</label>
+        <input type="email" name="email" placeholder="votre@email.com">
+      </div>
+    </div>
+
+    <div class="field orange">
+      <label>Ville de résidence <span class="required">*</span></label>
+      <select name="ville" required>
+        <option value="">-- Sélectionner --</option>
+        <option>Bohicon</option>
+        <option>Abomey</option>
+        <option>Agbangnizoun</option>
+        <option>Covè</option>
+        <option>Autre commune du Zou</option>
+        <option>Cotonou</option>
+        <option>Autre</option>
+      </select>
+    </div>
+
+    <div class="field orange">
+      <label>Moyen de déplacement disponible <span class="required">*</span></label>
+      <div class="radio-group">
+        <label><input type="radio" name="deplacement" value="Moto personnelle" required> Moto personnelle</label>
+        <label><input type="radio" name="deplacement" value="Voiture personnelle"> Voiture personnelle</label>
+        <label><input type="radio" name="deplacement" value="Transport en commun"> Transport en commun uniquement</label>
+        <label><input type="radio" name="deplacement" value="Aucun"> Aucun moyen de déplacement propre</label>
+      </div>
+    </div>
+
+    <div class="section-title orange">2. Expérience commerciale</div>
+
+    <div class="field orange">
+      <label>Années d'expérience en vente ou prospection commerciale <span class="required">*</span></label>
+      <div class="radio-group">
+        <label><input type="radio" name="exp_commerciale" value="Aucune" required> Aucune expérience commerciale formelle</label>
+        <label><input type="radio" name="exp_commerciale" value="Moins de 1 an"> Moins de 1 an</label>
+        <label><input type="radio" name="exp_commerciale" value="1 à 2 ans"> 1 à 2 ans</label>
+        <label><input type="radio" name="exp_commerciale" value="3 à 5 ans"> 3 à 5 ans</label>
+        <label><input type="radio" name="exp_commerciale" value="Plus de 5 ans"> Plus de 5 ans</label>
+      </div>
+    </div>
+
+    <div class="field orange">
+      <label>Décrivez vos expériences commerciales ou de prospection <span class="required">*</span></label>
+      <textarea name="experiences" required placeholder="Structures, produits vendus, résultats obtenus..."></textarea>
+    </div>
+
+    <div class="field orange">
+      <label>Connaissez-vous personnellement des directeurs d'écoles dans la zone Bohicon/Abomey ? <span class="required">*</span></label>
+      <div class="radio-group">
+        <label><input type="radio" name="reseau_ecoles" value="Oui, plusieurs" required> Oui, je connais plusieurs directeurs d'écoles</label>
+        <label><input type="radio" name="reseau_ecoles" value="Oui, quelques-uns"> Oui, j'en connais quelques-uns</label>
+        <label><input type="radio" name="reseau_ecoles" value="Non"> Non, je n'ai pas de réseau scolaire direct</label>
+      </div>
+    </div>
+
+    <div class="field orange">
+      <label>Estimez le nombre d'établissements scolaires que vous pourriez contacter dans le premier mois <span class="required">*</span></label>
+      <div class="radio-group">
+        <label><input type="radio" name="estimation_ecoles" value="Moins de 5" required> Moins de 5 établissements</label>
+        <label><input type="radio" name="estimation_ecoles" value="5 à 10"> 5 à 10 établissements</label>
+        <label><input type="radio" name="estimation_ecoles" value="10 à 20"> 10 à 20 établissements</label>
+        <label><input type="radio" name="estimation_ecoles" value="Plus de 20"> Plus de 20 établissements</label>
+      </div>
+    </div>
+
+    <div class="section-title orange">3. Motivation et engagement</div>
+
+    <div class="field orange">
+      <label>Pourquoi choisissez-vous un poste 100 % à la commission ? <span class="required">*</span></label>
+      <textarea name="motivation_commission" required placeholder="Expliquez votre rapport à ce modèle de rémunération..."></textarea>
+    </div>
+
+    <div class="field orange">
+      <label>Quels sont vos objectifs de revenus mensuels avec ce poste ? <span class="required">*</span></label>
+      <div class="radio-group">
+        <label><input type="radio" name="objectif_revenu" value="Moins de 30 000 FCFA" required> Moins de 30 000 FCFA / mois</label>
+        <label><input type="radio" name="objectif_revenu" value="30 000 à 60 000 FCFA"> 30 000 à 60 000 FCFA / mois</label>
+        <label><input type="radio" name="objectif_revenu" value="60 000 à 100 000 FCFA"> 60 000 à 100 000 FCFA / mois</label>
+        <label><input type="radio" name="objectif_revenu" value="Plus de 100 000 FCFA"> Plus de 100 000 FCFA / mois</label>
+      </div>
+    </div>
+
+    <div class="field orange">
+      <label>Pourquoi souhaitez-vous rejoindre Ondes d'Excellence ? <span class="required">*</span></label>
+      <textarea name="motivation" required placeholder="200 à 500 mots..." style="min-height: 140px;"></textarea>
+    </div>
+
+    <div class="section-title orange">4. Références</div>
+
+    <div class="field orange">
+      <label>Référence 1 — Nom et contact <span class="required">*</span></label>
+      <input type="text" name="reference1" required placeholder="Nom, Fonction, Numéro WhatsApp ou téléphone">
+    </div>
+    <div class="field orange">
+      <label>Référence 2 — Nom et contact</label>
+      <input type="text" name="reference2" placeholder="Nom, Fonction, Numéro WhatsApp ou téléphone">
+    </div>
+
+    <div class="section-title orange">5. Documents à joindre</div>
+
+    <div class="field orange">
+      <label>CV (PDF obligatoire) <span class="required">*</span></label>
+      <div class="upload-area">
+        <div>📄 Glissez votre CV ici ou cliquez pour sélectionner</div>
+        <div style="font-size:12px;margin-top:4px;">Format PDF — Taille max : 5 Mo</div>
+        <input type="file" id="cv-commercial" name="cv" accept=".pdf" required>
+        <label for="cv-commercial" class="upload-btn orange">Choisir le fichier</label>
+        <div id="cv-commercial-name" style="margin-top:8px;font-size:13px;color:#E65100;"></div>
+      </div>
+    </div>
+
+    <div class="field orange">
+      <label>Justificatif d'expérience commerciale (optionnel)</label>
+      <div class="upload-area">
+        <div>📎 Attestation, contrat, lettre de recommandation...</div>
+        <input type="file" id="justif-commercial" name="justificatif" accept=".pdf,.doc,.docx,.jpg,.png">
+        <label for="justif-commercial" class="upload-btn orange">Choisir le fichier</label>
+        <div id="justif-commercial-name" style="margin-top:8px;font-size:13px;color:#E65100;"></div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Déclaration sur l'honneur <span class="required">*</span></label>
+      <div class="checkbox-group">
+        <label>
+          <input type="checkbox" name="declaration" required>
+          Je certifie que toutes les informations fournies sont exactes. Je comprends le modèle de rémunération 100 % à la commission et accepte l'objectif minimal de 3 contrats écoles par mois.
+        </label>
+      </div>
+    </div>
+
+    <button type="submit" class="submit-btn orange">💼 Soumettre ma candidature — Agent Commercial</button>
+  </form>
+
+  <div class="success-msg" id="success-commercial">
+    <h3>✅ Candidature reçue !</h3>
+    <p>Merci pour votre candidature au poste d'Agent Commercial Freelance.<br>
+    Vous recevrez une réponse par WhatsApp avant le 18 mai 2026.<br><br>
+    💼 <strong>Ondes d'Excellence — Rejoignez l'équipe qui élève.</strong></p>
+  </div>
+</div>
+
+<script>
+function showTab(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.form-container').forEach(f => f.classList.remove('active'));
+  document.querySelector('.tab.' + tab).classList.add('active');
+  document.getElementById('form-' + tab).classList.add('active');
+}
+
+// Afficher le nom du fichier sélectionné
+document.querySelectorAll('input[type="file"]').forEach(input => {
+  input.addEventListener('change', function() {
+    const nameDiv = document.getElementById(this.id + '-name');
+    if (nameDiv && this.files[0]) {
+      nameDiv.textContent = '✅ ' + this.files[0].name;
+    }
+  });
+});
+
+function submitForm(event, type) {
+  event.preventDefault();
+  const form = document.getElementById('form' + type.charAt(0).toUpperCase() + type.slice(1));
+
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwmuFnmiCe-740yAGdsZ4k9gcTsMdEJEuOBbrx6Njc7sDfOy3I0qpP8SvJ8Y9PpBM_7FQ/exec';
+
+  const formData = new FormData(form);
+  const data = { type: type };
+  formData.forEach((value, key) => { data[key] = value; });
+
+  const btn = form.querySelector('.submit-btn');
+  btn.textContent = '⏳ Envoi en cours...';
+  btn.disabled = true;
+
+  fetch(APPS_SCRIPT_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  })
+  .then(() => {
+    form.style.display = 'none';
+    document.getElementById('success-' + type).style.display = 'block';
+    window.scrollTo(0, 0);
+  })
+  .catch(() => {
+    form.style.display = 'none';
+    document.getElementById('success-' + type).style.display = 'block';
+    window.scrollTo(0, 0);
+  });
+}
+</script>
+
+</body>
+</html>
