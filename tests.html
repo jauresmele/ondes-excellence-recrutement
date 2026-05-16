@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tests de recrutement — Ondes d'Excellence</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Arial, sans-serif; background: #f0f4f8; color: #222; }
+
+.page-header {
+  background: linear-gradient(135deg, #1565C0, #0288D1);
+  color: white; text-align: center; padding: 32px 20px;
+}
+.page-header h1 { font-size: 26px; margin-bottom: 8px; }
+.page-header p { font-size: 14px; opacity: 0.85; font-style: italic; }
+
+.tabs {
+  display: flex; max-width: 860px; margin: 24px auto 0;
+  border-radius: 8px 8px 0 0; overflow: hidden;
+}
+.tab {
+  flex: 1; padding: 14px; text-align: center; font-weight: bold;
+  font-size: 15px; cursor: pointer; transition: all 0.2s;
+}
+.tab.anim { background: #E3F2FD; color: #1565C0; }
+.tab.anim.active { background: #1565C0; color: white; }
+.tab.comm { background: #FFF3E0; color: #E65100; }
+.tab.comm.active { background: #E65100; color: white; }
+
+.test-container {
+  max-width: 860px; margin: 0 auto 40px;
+  background: white; border-radius: 0 0 12px 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.10); padding: 32px;
+  display: none;
+}
+.test-container.active { display: block; }
+
+.test-header {
+  border-left: 6px solid; padding: 16px 20px; margin-bottom: 28px;
+  border-radius: 0 8px 8px 0;
+}
+.test-header.bleu { border-color: #1565C0; background: #E3F2FD; }
+.test-header.orange { border-color: #E65100; background: #FFF3E0; }
+.test-header h2 { font-size: 20px; margin-bottom: 6px; }
+.test-header.bleu h2 { color: #1565C0; }
+.test-header.orange h2 { color: #E65100; }
+.test-header p { font-size: 13px; color: #555; }
+
+.candidat-info {
+  background: #f8f9fa; border-radius: 8px; padding: 20px; margin-bottom: 28px;
+}
+.candidat-info h3 { font-size: 15px; margin-bottom: 14px; color: #333; }
+.info-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media(max-width:600px){ .info-row { grid-template-columns: 1fr; } }
+.info-field label { display: block; font-size: 13px; font-weight: bold; margin-bottom: 5px; color: #444; }
+.info-field input {
+  width: 100%; padding: 9px 12px; border: 2px solid #ddd;
+  border-radius: 6px; font-size: 13px;
+}
+.info-field input:focus { outline: none; border-color: #1565C0; }
+
+.section-label {
+  font-size: 14px; font-weight: bold; padding: 10px 16px;
+  border-radius: 6px; color: white; margin: 24px 0 16px;
+}
+.section-label.bleu { background: #1565C0; }
+.section-label.orange { background: #E65100; }
+
+.question-card {
+  border: 2px solid #eee; border-radius: 8px; padding: 18px;
+  margin-bottom: 16px; transition: border-color 0.2s;
+}
+.question-card:hover { border-color: #bbb; }
+.question-num { font-size: 12px; font-weight: bold; color: #888; margin-bottom: 6px; }
+.question-text { font-size: 15px; font-weight: bold; color: #222; margin-bottom: 14px; line-height: 1.5; }
+.question-scenario {
+  background: #f0f7ff; border-left: 4px solid #1565C0;
+  padding: 12px; border-radius: 0 6px 6px 0; margin-bottom: 14px;
+  font-size: 13px; color: #333; font-style: italic; line-height: 1.6;
+}
+.options { display: flex; flex-direction: column; gap: 8px; }
+.option label {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 10px 14px; border: 2px solid #eee; border-radius: 6px;
+  cursor: pointer; font-size: 14px; transition: all 0.2s; line-height: 1.4;
+}
+.option label:hover { border-color: #1565C0; background: #f5f9ff; }
+.option input[type="radio"] { margin-top: 2px; flex-shrink: 0; }
+
+/* Résultats */
+.result-correct .option label.selected { border-color: #4CAF50; background: #E8F5E9; }
+.result-wrong .option label.selected { border-color: #f44336; background: #FFEBEE; }
+.result-correct .option label.correct-answer { border-color: #4CAF50; background: #E8F5E9; }
+.result-wrong .option label.correct-answer { border-color: #4CAF50; background: #E8F5E9; }
+.feedback { font-size: 13px; margin-top: 10px; padding: 8px 12px; border-radius: 6px; }
+.feedback.correct { background: #E8F5E9; color: #1B5E20; }
+.feedback.wrong { background: #FFEBEE; color: #B71C1C; }
+.feedback.explication { background: #FFF8E1; color: #333; margin-top: 6px; font-style: italic; }
+
+.timer-bar {
+  background: #eee; border-radius: 10px; height: 8px; margin-bottom: 20px; overflow: hidden;
+}
+.timer-fill { height: 100%; border-radius: 10px; transition: width 1s linear; background: #1565C0; }
+.timer-text { text-align: right; font-size: 13px; color: #666; margin-bottom: 6px; }
+
+.submit-btn {
+  width: 100%; padding: 16px; border: none; border-radius: 8px;
+  font-size: 16px; font-weight: bold; color: white; cursor: pointer;
+  margin-top: 24px; transition: opacity 0.2s;
+}
+.submit-btn.bleu { background: linear-gradient(135deg, #1565C0, #0288D1); }
+.submit-btn.orange { background: linear-gradient(135deg, #E65100, #F9A825); }
+.submit-btn:hover { opacity: 0.88; }
+.submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.score-panel {
+  display: none; text-align: center; padding: 32px 24px;
+  border-radius: 12px; margin-top: 20px;
+}
+.score-panel.success { background: #E8F5E9; border: 2px solid #4CAF50; }
+.score-panel.fail { background: #FFEBEE; border: 2px solid #f44336; }
+.score-panel.moyen { background: #FFF8E1; border: 2px solid #F9A825; }
+.score-num { font-size: 52px; font-weight: bold; margin: 12px 0; }
+.score-panel.success .score-num { color: #1B5E20; }
+.score-panel.fail .score-num { color: #B71C1C; }
+.score-panel.moyen .score-num { color: #E65100; }
+.score-label { font-size: 18px; font-weight: bold; margin-bottom: 8px; }
+.score-detail { font-size: 14px; color: #555; margin-top: 8px; }
+.score-mention { font-size: 16px; font-weight: bold; margin-top: 12px; }
+
+.progress-bar {
+  background: #eee; border-radius: 10px; height: 6px;
+  margin-bottom: 20px; overflow: hidden;
+}
+.progress-fill { height: 100%; border-radius: 10px; background: #1565C0; transition: width 0.3s; }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>🎙️ ONDES D'EXCELLENCE 🇧🇯 — Tests de Recrutement</h1>
+  <p>Répondez à toutes les questions · La correction est automatique · Durée : 30 minutes</p>
+</div>
+
+<div class="tabs">
+  <div class="tab anim active" onclick="showTab('anim')">🎙️ Test Animateur(trice) Radio</div>
+  <div class="tab comm" onclick="showTab('comm')">💼 Test Agent Commercial</div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- TEST ANIMATEUR -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+<div class="test-container active" id="test-anim">
+  <div class="test-header bleu">
+    <h2>🎙️ Test de recrutement — Animateur(trice) Radio</h2>
+    <p>20 questions · Communication, expression et mise en situation radio · 30 minutes</p>
+  </div>
+
+  <div class="candidat-info">
+    <h3>📋 Vos informations</h3>
+    <div class="info-row">
+      <div class="info-field"><label>Nom <span style="color:red">*</span></label><input type="text" id="anim-nom" required placeholder="Votre nom"></div>
+      <div class="info-field"><label>Prénom <span style="color:red">*</span></label><input type="text" id="anim-prenom" required placeholder="Votre prénom"></div>
+      <div class="info-field"><label>WhatsApp <span style="color:red">*</span></label><input type="tel" id="anim-tel" required placeholder="+229 XX XX XX XX"></div>
+      <div class="info-field"><label>Ville <span style="color:red">*</span></label><input type="text" id="anim-ville" required placeholder="Votre ville"></div>
+    </div>
+  </div>
+
+  <div class="timer-text" id="anim-timer-text">⏱️ Temps restant : 30:00</div>
+  <div class="timer-bar"><div class="timer-fill" id="anim-timer-fill" style="width:100%"></div></div>
+  <div class="progress-bar"><div class="progress-fill" id="anim-progress" style="width:0%"></div></div>
+
+  <form id="form-anim">
+
+    <div class="section-label bleu">PARTIE 1 — Communication et expression écrite (10 questions)</div>
+
+    <!-- Q1 -->
+    <div class="question-card" id="anim-q1">
+      <div class="question-num">Question 1 / 20</div>
+      <div class="question-text">Quelle est la principale qualité d'un bon animateur radio ?</div>
+      <div class="options">
+        <div class="option"><label><input type="radio" name="anim-q1" value="A"> A. Avoir une belle apparence physique</label></div>
+        <div class="option"><label><input type="radio" name="anim-q1" value="B"> B. Maîtriser parfaitement le langage informatique</label></div>
+        <div class="option"><label><input type="radio" name="anim-q1" value="C"> C. Avoir une diction claire, un débit maîtrisé et une voix agréable</label></div>
+        <div class="option"><label><input type="radio" name="anim-q1" value="D"> D. Connaître toutes les chansons populaires</label></div>
+      </div>
+    </div>
+
+    <!-- Q2 -->
+    <div class="question-card" id="anim-q2">
+      <div class="question-num">Question 2 / 20</div>
+      <div class="question-text">Qu'est-ce que le "débit" dans l'expression orale ?</div>
+      <div class="options">
+        <div class="option"><label><input type="radio" name="anim-q2" value="A"> A. Le volume sonore de la voix</label></div>
+        <div class="option"><label><input type="radio" name="anim-q2" value="B"> B. La vitesse à laquelle on parle</label></div>
+        <div class="option"><label><input type="radio" name="anim-q2" value="C"> C. La qualité du microphone utilisé</label></div>
+        <div class="option"><label><input type="radio" name="anim-q2" value="D"> D. Le nombre de mots dans un script</label></div>
+      </div>
+    </div>
+
+    <!-- Q3 -->
+    <div class="question-card" id="anim-q3">
+      <div class="question-num">Question 3 / 20</div>
+      <div class="question-text">Dans la phrase "Il avait les yeux plus grands que le ventre", quelle figure de style est utilisée ?</div>
+      <div class="options">
+        <div class="option"><label><input type="radio" name="anim-q3" value="A"> A. Une métaphore</label></div>
+        <div class="option"><label><input type="radio" name="anim-q3" value="B"> B. Une hyperbole</label></div>
+        <div class="option"><label><input type="radio" name="anim-q3" value="C"> C. Une comparaison</label></div>
+        <div class="option"><label><input type="radio" name="anim-q3" value="D"> D. Une personnification</label></div>
+      </div>
+    </div>
+
+    <!-- Q4 -->
+    <div class="question-card" id="anim-q4">
+      <div class="question-num">Question 4 / 20</div>
+      <div class="question-text">Laquelle de ces formulations est la plus appropriée pour introduire un invité à la radio ?</div>
+      <div class="options">
+        <div class="option"><label><input type="radio" name="anim-q4" value="A"> A. "Bon, on a là quelqu'un qui est venu, donc voilà..."</label></div>
+        <div class="option"><label><input type="radio" name="anim-q4" value="B"> B. "J'accueille avec plaisir notre invité du jour, Monsieur..."</label></div>
+        <div class="option"><label><input type="radio" name="anim-q4" value="C"> C. "Il y a un monsieur qui est là pour parler de son truc..."</label></div>
+        <div class="option"><label><input type="radio" name="anim-q4" value="D"> D. "On reçoit quelqu'un, je sais pas trop ce qu'il fait mais bon..."</label></div>
+      </div>
+    </div>
+
+    <!-- Q5 -->
+    <div class="question-card" id="anim-q5">
+      <div class="question-num">Question 5 / 20</div>
+      <div class="question-text">Qu'est-ce qu'un "jingle" en radio ?</div>
+      <div class="options">
+        <div class="option"><label><input type="radio" name="anim-q5" value="A"> A. Un long discours de présentation</label></div>
+        <div class="option"><label><input type="radio" name="anim-q5" value="B"> B. Un court extrait musical servant à identifier une émission ou une station</label></div>
+        <div class="option"><label><input type="radio" name="anim-q5" value="C"> C. Une interruption technique de la diffusion</label></div>
+        <div class="option"><label><input type="radio" name="anim-q5" value="D"> D. Un type de microphone professionnel</label></div>
+      </div>
+    </div>
+
+    <!-- Q6 -->
+    <div class="question-card" id="anim-q6">
+      <div class="question-num">Question 6 / 20</div>
+      <div class="question-text">Que signifie "adapter son registre de langue" lors d'une émission pour enfants ?</div>
+      <div class="options">
+        <div class="option"><label><input type="radio" name="anim-q6" value="A"> A. Parler plus fort pour que les enfants entendent mieux</label></div>
+        <div class="option"><label><input type="radio" name="anim-q6" value="B"> B. Utiliser un vocabulaire simple, un ton enjoué et des exemples concrets accessibles aux enfants</label></div>
+        <div class="option"><label><input type="radio" name="anim-q6" value="C"> C. Parler exclusivement en langue locale</label></div>
+        <div class="option"><label><input type="radio" name="anim-q6" value="D"> D. Réduire la durée de l'émission à 2 minutes</label></div>
+      </div>
+    </div>
+
+    <!-- Q7 -->
+    <div class="question-card" id="anim-q7">
+      <div class="question-num">Question 7 / 20</div>
+      <div class="question-text">Quel est le sens de l'expression française "avoir le bras long" ?</div>
+      <div class="options">
+        <div class="option"><label><input type="radio" name="anim-q7" value="A"> A. Être grand de taille</label></div>
+        <div class="option"><label><input type="radio" name="anim-q7" value="B"> B. Être généreux</label></div>
+        <div class="option"><label><input type="radio" name="anim-q7" value="C"> C. Avoir de l'influence, des relations puissantes</label></div>
+        <div class="option"><label><input type="radio" name="anim-q7" value="D"> D. Être paresseux</label></div>
+      </div>
+    </div>
+
+    <!-- Q8 -->
+    <div class="question-card" id="anim-q8">
+      <div class="question-num">Question 8 / 20</div>
+      <div class="question-text">Dans un script radio, à quoi sert l'appel à l'action (CTA) en fin d'émission ?</div>
+      <div class="options">
+        <div class="option"><label><input type="radio" name="anim-q8" value="A"> A. À remercier les sponsors</label></div>
+        <div class="option"><label><input type="radio" name="anim-q8" value="B"> B. À inviter l'auditeur à faire quelque chose de précis : s'abonner, partager, visiter une page</label></div>
+        <div class="option"><label><input type="radio" name="anim-q8" value="C"> C. À annoncer la météo</label></div>
+        <div class="option"><label><input type="radio" name="anim-q8" value="D"> D. À présenter l'animateur suivant</label></div>
+      </div>
+    </div>
+
+    <!-- Q9 -->
+    <div class="question-card" id="anim-q9">
+      <div class="question-num">Question 9 / 20</div>
+      <div class="question-text">Laquelle de ces pratiques est à ÉVITER lors d'un enregistrement audio ?</div>
+      <div class="options">
+        <div class="option"><label><input type="radio" name="anim-q9" value="A"> A. Parler naturellement en regardant le script</label></div>
+        <div class="option"><label><input type="radio" name="anim-q9" value="B"> B. Faire des pauses entre les phrases importantes</label></div>
+        <div class="option"><label><input type="radio" name="anim-q9" value="C"> C. Lire le texte mot à mot d'une voix monotone sans inflexion</label></div>
+        <div class="option"><label><input type="radio" name="anim-q9" value="D"> D. Sourire pendant l'enregistrement pour adoucir la voix</label></div>
+      </div>
+    </div>
+
+    <!-- Q10 -->
+    <div class="question-card" id="anim-q10">
+      <div class="question-num">Question 10 / 20</div>
+      <div class="question-text">Quelle est l'origine de l'expression "tomber dans les pommes" ?</div>
+      <div class="options">
+        <div class="option"><label><input type="radio" name="anim-q10" value="A"> A. Une chute dans un verger au Moyen Âge</label></div>
+        <div class="option"><label><input type="radio" name="anim-q10" value="B"> B. Une déformation de "tomber dans les pâmes" (s'évanouir en vieux français)</label></div>
+        <div class="option"><label><input type="radio" name="anim-q10" value="C"> C. Une recette médicale à base de pommes pour soigner les évanouissements</label></div>
+        <div class="option"><label><input type="radio" name="anim-q10" value="D"> D. Une expression inventée par Victor Hugo dans ses romans</label></div>
+      </div>
+    </div>
+
+    <div class="section-label bleu">PARTIE 2 — Mises en situation radio (10 questions)</div>
+
+    <!-- Q11 -->
+    <div class="question-card" id="anim-q11">
+      <div class="question-num">Question 11 / 20</div>
+      <div class="question-scenario">📻 SITUATION : Vous animez l'émission "La Langue Vivante". Un élève invité vous pose la question : "Monsieur, qu'est-ce que ça veut dire 'noyer le poisson' ?"</div>
+      <div class="question-text">Quelle est la meilleure réponse à donner à l'antenne ?</div>
+      <div class="options">
+        <div class="option"><label><input type="radio" name="anim-q11" value="A"> A. "Je ne sais pas exactement, passons à la prochaine expression."</label></div>
+        <div class="option"><label><input type="radio" name="anim-q11" value="B"> B. "Excellente question ! 'Noyer le poisson' signifie embrouiller une situation, détourner l'attention d'un sujet gênant. Par exemple : un élève qui parle de tout sauf de ses mauvaises notes noie le poisson avec ses parents !"</label></div>
+        <div class="option"><label><input type="radio" name="anim-q11" value="C"> C. "Cette expression parle d'un poisson qu'on met dans l'eau."</label></div>
+        <div class="option"><label><input type="radio" name="anim-q11" value="D"> D. "C'est une expression trop compliquée pour les élèves, on va changer de sujet."</label></div>
+      </div>
+    </div>
+
+    <!-- Q12 -->
+    <div class="question-card" id="anim-q12">
+      <div class="question-num">Question 12 / 20</div>
+      <div class="question-scenario">📻 SITUATION : Pendant l'enregistrement d'un épisode d'"Histoires de Vie", un comédien élève oublie son texte et se tait pendant 5 secondes.</div>
+      <div class="question-text">Quelle est la meilleure réaction de l'animateur ?</div>
+      <div class="options">
+        <div class="option"><label><input type="radio" name="anim-q11" value="A"> A. Couper immédiatement l'enregistrement et crier sur l'élève</label></div>
+        <div class="option"><label><input type="radio" name="anim-q12" value="B"> B. Reprendre calmement la scène depuis le dernier point, encourager l'élève et continuer</label></div>
+        <div class="option"><label><input type="radio" name="anim-q12" value="C"> C. Lire le texte de l'élève à sa place sans rien dire</label></div>
+        <div class="option"><label><input type="radio" name="anim-q12" value="D"> D. Annoncer à l'antenne que l'élève a oublié son texte</label></div>
+      </div>
+    </div>
+
+    <!-- Q13 -->
+    <div class="question-card" id="anim-q13">
+      <div class="question-num">Question 13 / 20</div>
+      <div class="question-scenario">📻 SITUATION : Vous devez produire 3 capsules "La Langue Vivante" cette semaine, mais vous n'avez reçu aucune idée d'expression de votre équipe.</div>
+      <div class="question-text">Que faites-vous ?</div>
+      <div class="options">
+        <div class="option"><label><input type="radio" name="anim-q13" value="A"> A. Vous attendez que l'équipe vous envoie les idées</label></div>
+        <div class="option"><label><input type="radio" name="anim-q13" value="B"> B. Vous annulez les 3 épisodes de la semaine</label></div>
+        <div class="option"><label><input type="radio" name="anim-q13" value="C"> C. Vous proposez vous-même 3 expressions pertinentes, rédigez les scripts et produisez les épisodes dans les délais</label></div>
+        <div class="option"><label><input type="radio" name="anim-q13" value="D"> D. Vous rediffusez des épisodes anciens sans prévenir</label></div>
+      </div>
+    </div>
+
+    <!-- Q14 -->
+    <div class="question-card" id="anim-q14">
+      <div class="question-num">Question 14 / 20</div>
+      <div class="question-scenario">📻 SITUATION : Vous animez "Le Grand Débat" dans une école. Un élève débatteur fait une affirmation incorrecte sur un fait historique.</div>
+      <div class="question-text">Comment gérez-vous la situation ?</div>
+      <div class="options">
+        <div class="option"><label><input type="radio" name="anim-q14" value="A"> A. Vous laissez passer sans rien dire pour ne pas embarrasser l'élève</label></div>
+        <div class="option"><label><input type="radio" name="anim-q14" value="B"> B. Vous corrigez immédiatement l'élève sèchement devant tout le monde</label></div>
+        <div class="option"><label><input type="radio" name="anim-q14" value="C"> C. Vous intervenez avec bienveillance : "C'est une perspective intéressante — les historiens indiquent plutôt que..." puis vous invitez les autres à réagir</label></div>
+        <div class="option"><label><input type="radio" name="anim-q14" value="D"> D. Vous coupez le micro de l'élève</label></div>
+      </div>
+    </div>
+
+    <!-- Q15 -->
+    <div class="question-card" id="anim-q15">
+      <div class="question-num">Question 15 / 20</div>
+      <div class="question-scenario">📻 SITUATION : À la fin d'un épisode de "Parents & Réussite", vous devez orienter les auditeurs vers la boutique en ligne d'Ondes d'Excellence.</div>
+      <div class="question-text">Quel appel à l'action est le plus efficace ?</div>
+      <div class="options">
+        <div class="option"><label><input type="radio" name="anim-q15" value="A"> A. "Si vous voulez, vous pouvez aller voir notre site internet quelque part..."</label></div>
+        <div class="option"><label><input type="radio" name="anim-q15" value="B"> B. "Retrouvez la fiche pratique de cette semaine sur notre boutique en ligne — le lien est disponible sur notre page Facebook @OndesExcellenceBenin et sur notre canal WhatsApp !"</label></div>
+        <div class="option"><label><input type="radio" name="anim-q15" value="C"> C. "Achetez nos produits, ils sont très bien et pas chers."</label></div>
+        <div class="option"><label><input type="radio" name="anim-q15" value="D"> D. "On vend des choses, contactez-nous si vous voulez."</label></div>
+      </div>
+    </div>
+
+    <!-- Q16 -->
+    <div class="question-card" id="anim-q16">
+      <div class="question-num">Question 16 / 20</div>
+      <div class="question-scenario">📻 SITUATION : Vous devez enregistrer l'émission "Le Monde de Kiki" pour des enfants de 5 ans. Le sujet est : "Pourquoi faut-il se laver les mains ?"</div>
+      <div class="question-text">Quelle introduction est la plus adaptée ?</div>
+      <div class="options">
+        <div class="option"><label><input type="radio" name="anim-q16" value="A"> A. "Aujourd'hui nous allons aborder la problématique de l'hygiène des mains dans un contexte épidémiologique préoccupant."</label></div>
+        <div class="option"><label><input type="radio" name="anim-q16" value="B"> B. "Kiki a mangé de la boue et il a eu mal au ventre ! Tu veux savoir pourquoi ? Parce que ses mains n'étaient pas propres ! Viens, on apprend ensemble le secret des mains magiques !"</label></div>
+        <div class="option"><label><input type="radio" name="anim-q16" value="C"> C. "Il faut se laver les mains parce que c'est important. Voilà."</label></div>
+        <div class="option"><label><input type="radio" name="anim-q16" value="D"> D. "Nous allons maintenant vous expliquer les règles d'hygiène à respecter selon les normes OMS."</label></div>
+      </div>
+    </div>
+
+    <!-- Q17 -->
+    <div class="question-card" id="anim-q17">
+      <div class="question-num">Question 17 / 20</div>
+      <div class="question-text">Combien de temps doit durer maximum une capsule "La Langue Vivante" selon le cahier des charges d'Ondes d'Excellence ?</div>
+      <div class="options">
+        <div class="option"><label><input type="radio" name="anim-q17" value="A"> A. 1 à 2 minutes</label></div>
+        <div class="option"><label><input type="radio" name="anim-q17" value="B"> B. 3 à 5 minutes</label></div>
+        <div class="option"><label><input type="radio" name="anim-q17" value="C"> C. 10 à 15 minutes</label></div>
+        <div class="option"><label><input type="radio" name="anim-q17" value="D"> D. 20 à 30 minutes</label></div>
+      </div>
+    </div>
+
+    <!-- Q18 -->
+    <div class="question-card" id="anim-q18">
+      <div class="question-num">Question 18 / 20</div>
+      <div class="question-scenario">📻 SITUATION : Un auditeur envoie un message WhatsApp pour se plaindre qu'une expression expliquée dans votre émission était incorrecte.</div>
+      <div class="question-text">Quelle est la meilleure réponse professionnelle ?</div>
+      <div class="options">
+        <div class="option"><label><input type="radio" name="anim-q18" value="A"> A. Ignorer le message — les auditeurs ne connaissent rien</label></div>
+        <div class="option"><label><input type="radio" name="anim-q18" value="B"> B. Répondre agressivement pour défendre votre position</label></div>
+        <div class="option"><label><input type="radio" name="anim-q18" value="C"> C. Remercier l'auditeur, vérifier l'information, et si erreur confirmée, la corriger lors du prochain épisode en citant la correction</label></div>
+        <div class="option"><label><input type="radio" name="anim-q18" value="D"> D. Supprimer l'épisode sans explication</label></div>
+      </div>
+    </div>
+
+    <!-- Q19 -->
+    <div class="question-card" id="anim-q19">
+      <div class="question-num">Question 19 / 20</div>
+      <div class="question-text">Quelle est la fréquence de diffusion de l'émission "La Langue Vivante" à l'antenne radio ?</div>
+      <div class="options">
+        <div class="option"><label><input type="radio" name="anim-q19" value="A"> A. Une fois par semaine</label></div>
+        <div class="option"><label><input type="radio" name="anim-q19" value="B"> B. Tous les jours</label></div>
+        <div class="option"><label><input type="radio" name="anim-q19" value="C"> C. Trois fois par semaine</label></div>
+        <div class="option"><label><input type="radio" name="anim-q19" value="D"> D. Une fois par mois</label></div>
+      </div>
+    </div>
+
+    <!-- Q20 -->
+    <div class="question-card" id="anim-q20">
+      <div class="question-num">Question 20 / 20</div>
+      <div class="question-scenario">📻 SITUATION : Vous terminez votre première semaine de travail. Vous avez produit 4 épisodes au lieu des 5 requis, car un invité a annulé.</div>
+      <div class="question-text">Que faites-vous ?</div>
+      <div class="options">
+        <div class="option"><label><input type="radio" name="anim-q20" value="A"> A. Vous ne dites rien et attendez la semaine prochaine</label></div>
+        <div class="option"><label><input type="radio" name="anim-q20" value="B"> B. Vous informez immédiatement votre responsable, expliquez la raison et proposez de compenser dès la semaine suivante</label></div>
+        <div class="option"><label><input type="radio" name="anim-q20" value="C"> C. Vous envoyez un épisode de mauvaise qualité pour atteindre les 5</label></div>
+        <div class="option"><label><input type="radio" name="anim-q20" value="D"> D. Vous blâmez l'invité dans votre rapport</label></div>
+      </div>
+    </div>
+
+    <button type="button" class="submit-btn bleu" onclick="corrigerTest('anim')">🎙️ Soumettre et voir ma correction</button>
+  </form>
+
+  <div class="score-panel" id="score-anim">
+    <div id="score-anim-emoji" style="font-size:48px"></div>
+    <div class="score-label" id="score-anim-label"></div>
+    <div class="score-num" id="score-anim-num"></div>
+    <div class="score-detail" id="score-anim-detail"></div>
+    <div class="score-mention" id="score-anim-mention"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- TEST AGENT COMMERCIAL -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+<div class="test-container" id="test-comm">
+  <div class="test-header orange">
+    <h2>💼 Test de recrutement — Agent Commercial Freelance</h2>
+    <p>20 questions · Techniques de vente, négociation et prospection · 30 minutes</p>
+  </div>
+
+  <div class="candidat-info">
+    <h3>📋 Vos informations</h3>
+    <div class="info-row">
+      <div class="info-field"><label>Nom <span style="color:red">*</span></label><input type="text" id="comm-nom" required placeholder="Votre nom"></div>
+      <div class="info-field"><label>Prénom <span style="color:red">*</span></label><input type="text" id="comm-prenom" required placeholder="Votre prénom"></div>
+      <div class="info-field"><label>WhatsApp <span style="color:red">*</span></label><input type="tel" id="comm-tel" required placeholder="+229 XX XX XX XX"></div>
+      <div class="info-field"><label>Ville <span style="color:red">*</span></label><input type="text" id="comm-ville" required placeholder="Votre ville"></div>
+    </div>
+  </div>
+
+  <div class="timer-text" id="comm-timer-text">⏱️ Temps restant : 30:00</div>
+  <div class="timer-bar"><div class="timer-fill" id="comm-timer-fill" style="width:100%; background:#E65100"></div></div>
+  <div class="progress-bar"><div class="progress-fill" id="comm-progress" style="width:0%; background:#E65100"></div></div>
+
+  <form id="form-comm">
+
+    <div class="section-label orange">PARTIE 1 — Techniques de vente et négociation (10 questions)</div>
+
+    <!-- Q1 -->
+    <div class="question-card" id="comm-q1">
+      <div class="question-num">Question 1 / 20</div>
+      <div class="question-text">Quelle est la première étape d'un cycle de vente efficace ?</div>
+      <div class="options">
+        <div class="option"><label><input type="radio" name="comm-q1" value="A"> A. Présenter immédiatement le prix du produit</label></div>
+        <div class="option"><label><input type="radio" name="comm-q1" value="B"> B. Identifier et qualifier le prospect (s'assurer qu'il a besoin du produit et peut payer)</label></div>
+        <div class="option"><label><input type="radio" name="comm-q1" value="C"> C. Envoyer un SMS publicitaire en masse</label></div>
+        <div class="option"><label><input type="radio" name="comm-q1" value="D"> D. Signer le contrat sans rendez-vous préalable</label></div>
+      </div>
+    </div>
+
+    <!-- Q2 -->
+    <div class="question-card" id="comm-q2">
+      <div class="question-num">Question 2 / 20</div>
+      <div class="question-text">Un directeur d'école vous dit : "Votre offre est trop chère pour nous." Quelle est la meilleure réponse ?</div>
+      <div class="options">
+        <div class="option"><label><input type="radio" name="comm-q2" value="A"> A. "D'accord, je comprends. Au revoir."</label></div>
+        <div class="option"><label><input type="radio" name="comm-q2" value="B"> B. "Notre offre n'est pas chère du tout, vous avez tort !"</label></div>
+        <div class="option"><label><input type="radio" name="comm-q2" value="C"> C. "Je comprends votre préoccupation. Permettez-moi de vous montrer le retour sur investissement concret que votre école obtient — la visibilité à l'antenne, les élèves participants, le rayonnement... Nous avons aussi une formule Essentielle à 11 000 FCFA/mois qui pourrait correspondre à votre budget."</label></div>
+        <div class="option"><label><input type="radio" name="comm-q2" value="D"> D. "Je vais demander à mon patron de baisser le prix pour vous."</label></div>
+      </div>
+    </div>
+
+    <!-- Q3 -->
+    <div class="question-card" id="comm-q3">
+      <div class="question-num">Question 3 / 20</div>
+      <div class="question-text">Qu'est-ce qu'une "objection" dans la vente ?</div>
+      <div class="options">
+        <div class="option"><label><input type="radio" name="comm-q3" value="A"> A. Un refus définitif du client qui met fin à la vente</label></div>
+        <div class="option"><label><input type="radio" name="comm-q3" value="B"> B. Une résistance ou un doute du prospect qui indique souvent un intérêt caché et une opportunité de convaincre</label></div>
+        <div class="option"><label><input type="radio" name="comm-q3" value="C"> C. Une clause dans un contrat de vente</label></div>
+        <div class="option"><label><input type="radio" name="comm-q3" value="D"> D. Un document administratif requis pour signer</label></div>
+      </div>
+    </div>
+
+    <!-- Q4 -->
+    <div class="question-card" id="comm-q4">
+      <div class="question-num">Question 4 / 20</div>
+      <div class="question-text">Vous avez rendez-vous avec un directeur d'école à 10h. Vous arrivez à 10h15. Que faites-vous ?</div>
+      <div class="options">
+        <div class="option"><label><input type="radio" name="comm-q4" value="A"> A. Entrez sans vous excuser et commencez votre présentation</label></div>
+        <div class="option"><label><input type="radio" name="comm-q4" value="B"> B. Prévenez par WhatsApp dès que vous savez que vous serez en retard, excusez-vous à l'arrivée et allez droit au but pour respecter son temps</label></div>
+        <div class="option"><label><input type="radio" name="comm-q4" value="C"> C. Annulez le rendez-vous et reprenez contact dans une semaine</label></div>
+        <div class="option"><label><input type="radio" name="comm-q4" value="D"> D. Blâmez les embouteillages longuement pour justifier votre retard</label></div>
+      </div>
+    </div>
+
+    <!-- Q5 -->
+    <div class="question-card" id="comm-q5">
+      <div class="question-num">Question 5 / 20</div>
+      <div class="question-text">Quel est le principal avantage du partenariat Ondes d'Excellence que vous devez mettre en avant auprès d'un directeur d'école ?</div>
+      <div class="options">
+        <div class="option"><label><input type="radio" name="comm-q5" value="A"> A. Le faible coût de l'abonnement</label></div>
+        <div class="option"><label><input type="radio" name="comm-q5" value="B"> B. La visibilité de l'école à l'antenne radio et sur les réseaux sociaux, la participation des élèves aux émissions et le rayonnement de l'établissement</label></div>
+        <div class="option"><label><input type="radio" name="comm-q5" value="C"> C. Le fait que d'autres écoles ont déjà signé</label></div>
+        <div class="option"><label><input type="radio" name="comm-q5" value="D"> D. La gratuité du service pendant 6 mois</label></div>
+      </div>
+    </div>
+
+    <!-- Q6 -->
+    <div class="question-card" id="comm-q6">
+      <div class="question-num">Question 6 / 20</div>
+      <div class="question-text">Quelle est votre commission mensuelle si vous signez 4 écoles en Formule Engagement (20 000 FCFA/mois) ?</div>
+      <div class="options">
+        <div class="option"><label><input type="radio" name="comm-q6" value="A"> A. 8 000 FCFA</label></div>
+        <div class="option"><label><input type="radio" name="comm-q6" value="B"> B. 12 000 FCFA</label></div>
+        <div class="option"><label><input type="radio" name="comm-q6" value="C"> C. 12 000 FCFA le premier mois, puis récurrents chaque mois</label></div>
+        <div class="option"><label><input type="radio" name="comm-q6" value="D"> D. 20 000 FCFA</label></div>
+      </div>
+    </div>
+
+    <!-- Q7 -->
+    <div class="question-card" id="comm-q7">
+      <div class="question-num">Question 7 / 20</div>
+      <div class="question-text">Lors d'une présentation commerciale, que signifie "écoute active" ?</div>
+      <div class="options">
+        <div class="option"><label><input type="radio" name="comm-q7" value="A"> A. Parler fort pour dominer la conversation</label></div>
+        <div class="option"><label><input type="radio" name="comm-q7" value="B"> B. Prendre des notes pendant que le client parle sans l'interrompre</label></div>
+        <div class="option"><label><input type="radio" name="comm-q7" value="C"> C. Se concentrer pleinement sur le prospect, reformuler ses propos, poser des questions pertinentes et montrer qu'on comprend ses besoins</label></div>
+        <div class="option"><label><input type="radio" name="comm-q7" value="D"> D. Enregistrer secrètement la conversation</label></div>
+      </div>
+    </div>
+
+    <!-- Q8 -->
+    <div class="question-card" id="comm-q8">
+      <div class="question-num">Question 8 / 20</div>
+      <div class="question-text">Un directeur vous dit "Je dois réfléchir." Que faites-vous ?</div>
+      <div class="options">
+        <div class="option"><label><input type="radio" name="comm-q8" value="A"> A. Vous partez et attendez qu'il vous rappelle</label></div>
+        <div class="option"><label><input type="radio" name="comm-q8" value="B"> B. Vous insistez immédiatement pour qu'il signe sur le champ</label></div>
+        <div class="option"><label><input type="radio" name="comm-q8" value="C"> C. Vous demandez ce qui l'empêche de décider maintenant, répondez à ses derniers doutes, proposez une date de relance précise et laissez le dossier</label></div>
+        <div class="option"><label><input type="radio" name="comm-q8" value="D"> D. Vous baissez le prix sans qu'il le demande</label></div>
+      </div>
+    </div>
+
+    <!-- Q9 -->
+    <div class="question-card" id="comm-q9">
+      <div class="question-num">Question 9 / 20</div>
+      <div class="question-text">Quelle est la différence entre un "prospect" et un "client" ?</div>
+      <div class="options">
+        <div class="option"><label><input type="radio" name="comm-q9" value="A"> A. Il n'y a aucune différence</label></div>
+        <div class="option"><label><input type="radio" name="comm-q9" value="B"> B. Un prospect est une cible potentielle non encore convertie ; un client a déjà signé et paie</label></div>
+        <div class="option"><label><input type="radio" name="comm-q9" value="C"> C. Un prospect est plus important qu'un client</label></div>
+        <div class="option"><label><input type="radio" name="comm-q9" value="D"> D. Un prospect est un ancien client qui a résilié</label></div>
+      </div>
+    </div>
+
+    <!-- Q10 -->
+    <div class="question-card" id="comm-q10">
+      <div class="question-num">Question 10 / 20</div>
+      <div class="question-text">Combien de contrats écoles minimum devez-vous signer par mois selon votre cahier des charges ?</div>
+      <div class="options">
+        <div class="option"><label><input type="radio" name="comm-q10" value="A"> A. 1 contrat</label></div>
+        <div class="option"><label><input type="radio" name="comm-q10" value="B"> B. 2 contrats</label></div>
+        <div class="option"><label><input type="radio" name="comm-q10" value="C"> C. 3 contrats</label></div>
+        <div class="option"><label><input type="radio" name="comm-q10" value="D"> D. 5 contrats</label></div>
+      </div>
+    </div>
+
+    <div class="section-label orange">PARTIE 2 — Aptitude à la prospection (10 questions)</div>
+
+    <!-- Q11 -->
+    <div class="question-card" id="comm-q11">
+      <div class="question-num">Question 11 / 20</div>
+      <div class="question-scenario">💼 SITUATION : Vous arrivez dans une école sans rendez-vous. La secrétaire vous dit : "Le directeur est très occupé et ne reçoit personne aujourd'hui."</div>
+      <div class="question-text">Quelle est la meilleure approche ?</div>
+      <div class="options">
+        <div class="option"><label><input type="radio" name="comm-q11" value="A"> A. Partir immédiatement sans rien laisser</label></div>
+        <div class="option"><label><input type="radio" name="comm-q11" value="B"> B. Insister pour entrer de force voir le directeur</label></div>
+        <div class="option"><label><input type="radio" name="comm-q11" value="C"> C. Laisser le dossier de partenariat avec une note personnalisée, demander le meilleur moment pour revenir et noter la date de relance dans votre agenda</label></div>
+        <div class="option"><label><input type="radio" name="comm-q11" value="D"> D. Appeler le directeur directement sur son téléphone personnel</label></div>
+      </div>
+    </div>
+
+    <!-- Q12 -->
+    <div class="question-card" id="comm-q12">
+      <div class="question-num">Question 12 / 20</div>
+      <div class="question-scenario">💼 SITUATION : Sur 10 directeurs contactés cette semaine, 8 ont dit non. Vous êtes découragé(e).</div>
+      <div class="question-text">Quelle est la bonne attitude professionnelle ?</div>
+      <div class="options">
+        <div class="option"><label><input type="radio" name="comm-q12" value="A"> A. Arrêter la prospection et attendre que les directeurs viennent à vous</label></div>
+        <div class="option"><label><input type="radio" name="comm-q12" value="B"> B. Analyser les raisons des refus pour améliorer votre approche, planifier 10 nouveaux rendez-vous et maintenir le rythme</label></div>
+        <div class="option"><label><input type="radio" name="comm-q12" value="C"> C. Baisser les prix sans autorisation pour forcer les signatures</label></div>
+        <div class="option"><label><input type="radio" name="comm-q12" value="D"> D. Signaler à votre responsable que le produit ne se vend pas</label></div>
+      </div>
+    </div>
+
+    <!-- Q13 -->
+    <div class="question-card" id="comm-q13">
+      <div class="question-num">Question 13 / 20</div>
+      <div class="question-text">Quelle est la meilleure façon de préparer une visite chez un directeur d'école ?</div>
+      <div class="options">
+        <div class="option"><label><input type="radio" name="comm-q13" value="A"> A. Se présenter à l'improviste sans aucune préparation</label></div>
+        <div class="option"><label><input type="radio" name="comm-q13" value="B"> B. Se renseigner sur l'école (niveaux, effectifs, réputation), préparer le dossier, anticiper les objections et définir l'objectif précis de la visite</label></div>
+        <div class="option"><label><input type="radio" name="comm-q13" value="C"> C. Mémoriser uniquement les tarifs</label></div>
+        <div class="option"><label><input type="radio" name="comm-q13" value="D"> D. Appeler 5 minutes avant pour annoncer l'arrivée</label></div>
+      </div>
+    </div>
+
+    <!-- Q14 -->
+    <div class="question-card" id="comm-q14">
+      <div class="question-num">Question 14 / 20</div>
+      <div class="question-scenario">💼 SITUATION : Vous venez de signer votre premier contrat avec une école. Le directeur vous demande si d'autres écoles de la ville ont déjà signé.</div>
+      <div class="question-text">Que répondez-vous ?</div>
+      <div class="options">
+        <div class="option"><label><input type="radio" name="comm-q14" value="A"> A. "Oui, toutes les grandes écoles ont déjà signé !" (même si c'est faux)</label></div>
+        <div class="option"><label><input type="radio" name="comm-q14" value="B"> B. "Non, vous êtes le premier — c'est une excellente opportunité d'être parmi les pionniers et de bénéficier de notre meilleure attention au lancement."</label></div>
+        <div class="option"><label><input type="radio" name="comm-q14" value="C"> C. "Je ne peux pas vous dire, c'est confidentiel."</label></div>
+        <div class="option"><label><input type="radio" name="comm-q14" value="D"> D. "Je ne sais pas, ce n'est pas mon travail de savoir ça."</label></div>
+      </div>
+    </div>
+
+    <!-- Q15 -->
+    <div class="question-card" id="comm-q15">
+      <div class="question-num">Question 15 / 20</div>
+      <div class="question-text">Quel est le moyen le plus efficace pour identifier des prospects écoles dans la zone de Bohicon/Abomey ?</div>
+      <div class="options">
+        <div class="option"><label><input type="radio" name="comm-q15" value="A"> A. Attendre que les écoles vous contactent via Facebook</label></div>
+        <div class="option"><label><input type="radio" name="comm-q15" value="B"> B. Consulter les listes des inspections d'académie, faire du terrain en voiture/moto pour repérer les établissements, et activer son réseau personnel</label></div>
+        <div class="option"><label><input type="radio" name="comm-q15" value="C"> C. Envoyer des messages en masse sur WhatsApp sans ciblage</label></div>
+        <div class="option"><label><input type="radio" name="comm-q15" value="D"> D. Publier des annonces dans les journaux locaux</label></div>
+      </div>
+    </div>
+
+    <!-- Q16 -->
+    <div class="question-card" id="comm-q16">
+      <div class="question-num">Question 16 / 20</div>
+      <div class="question-scenario">💼 SITUATION : Un directeur vous dit qu'il veut signer, mais il veut d'abord "voir comment ça marche" sans payer pendant 2 mois.</div>
+      <div class="question-text">Quelle est la meilleure réponse ?</div>
+      <div class="options">
+        <div class="option"><label><input type="radio" name="comm-q16" value="A"> A. Accepter immédiatement les 2 mois gratuits</label></div>
+        <div class="option"><label><input type="radio" name="comm-q16" value="B"> B. Refuser catégoriquement et partir</label></div>
+        <div class="option"><label><input type="radio" name="comm-q16" value="C"> C. Lui expliquer que notre offre inclut déjà des garanties concrètes, lui proposer de commencer avec la Formule Essentielle à tarif réduit le premier mois et lui montrer ce qu'il reçoit dès le départ</label></div>
+        <div class="option"><label><input type="radio" name="comm-q16" value="D"> D. Promettre les 2 mois gratuits sans en informer votre responsable</label></div>
+      </div>
+    </div>
+
+    <!-- Q17 -->
+    <div class="question-card" id="comm-q17">
+      <div class="question-num">Question 17 / 20</div>
+      <div class="question-text">Qu'est-ce qu'un tableau de bord commercial ?</div>
+      <div class="options">
+        <div class="option"><label><input type="radio" name="comm-q17" value="A"> A. Un outil de décoration du bureau</label></div>
+        <div class="option"><label><input type="radio" name="comm-q17" value="B"> B. Un document qui suit les prospects contactés, les rendez-vous réalisés, les contrats signés et les relances à faire</label></div>
+        <div class="option"><label><input type="radio" name="comm-q17" value="C"> C. Un rapport envoyé uniquement en fin d'année</label></div>
+        <div class="option"><label><input type="radio" name="comm-q17" value="D"> D. Une liste de prix des produits</label></div>
+      </div>
+    </div>
+
+    <!-- Q18 -->
+    <div class="question-card" id="comm-q18">
+      <div class="question-num">Question 18 / 20</div>
+      <div class="question-scenario">💼 SITUATION : Vous avez signé 5 contrats ce mois-ci. Un des directeurs partenaires vous appelle pour dire qu'il est très satisfait du service.</div>
+      <div class="question-text">Comment exploitez-vous cette opportunité ?</div>
+      <div class="options">
+        <div class="option"><label><input type="radio" name="comm-q18" value="A"> A. Vous le remerciez et raccrochez</label></div>
+        <div class="option"><label><input type="radio" name="comm-q18" value="B"> B. Vous lui demandez s'il peut vous recommander 2 ou 3 autres directeurs d'écoles de sa connaissance et vous proposez une montée en gamme vers une formule supérieure</label></div>
+        <div class="option"><label><input type="radio" name="comm-q18" value="C"> C. Vous lui demandez de vous prêter de l'argent</label></div>
+        <div class="option"><label><input type="radio" name="comm-q18" value="D"> D. Vous lui annoncez une augmentation de tarif</label></div>
+      </div>
+    </div>
+
+    <!-- Q19 -->
+    <div class="question-card" id="comm-q19">
+      <div class="question-num">Question 19 / 20</div>
+      <div class="question-text">Quelle est la prime fixe accordée pour chaque annonceur radio signé ?</div>
+      <div class="options">
+        <div class="option"><label><input type="radio" name="comm-q19" value="A"> A. 2 000 FCFA</label></div>
+        <div class="option"><label><input type="radio" name="comm-q19" value="B"> B. 3 500 FCFA</label></div>
+        <div class="option"><label><input type="radio" name="comm-q19" value="C"> C. 5 000 FCFA</label></div>
+        <div class="option"><label><input type="radio" name="comm-q19" value="D"> D. 10 000 FCFA</label></div>
+      </div>
+    </div>
+
+    <!-- Q20 -->
+    <div class="question-card" id="comm-q20">
+      <div class="question-num">Question 20 / 20</div>
+      <div class="question-scenario">💼 SITUATION : Fin du mois. Vous avez signé 2 contrats au lieu des 3 requis. Vous avez rencontré beaucoup de refus liés à la période de fin d'année scolaire.</div>
+      <div class="question-text">Que faites-vous ?</div>
+      <div class="options">
+        <div class="option"><label><input type="radio" name="comm-q20" value="A"> A. Vous cachez le résultat à votre responsable</label></div>
+        <div class="option"><label><input type="radio" name="comm-q20" value="B"> B. Vous rédigez un rapport honnête expliquant le contexte, les actions menées, les raisons des refus et votre plan pour rattraper le mois suivant</label></div>
+        <div class="option"><label><input type="radio" name="comm-q20" value="C"> C. Vous comptez les prospects non encore signés comme des contrats</label></div>
+        <div class="option"><label><input type="radio" name="comm-q20" value="D"> D. Vous démissionnez car l'objectif est trop difficile</label></div>
+      </div>
+    </div>
+
+    <button type="button" class="submit-btn orange" onclick="corrigerTest('comm')">💼 Soumettre et voir ma correction</button>
+  </form>
+
+  <div class="score-panel" id="score-comm">
+    <div id="score-comm-emoji" style="font-size:48px"></div>
+    <div class="score-label" id="score-comm-label"></div>
+    <div class="score-num" id="score-comm-num"></div>
+    <div class="score-detail" id="score-comm-detail"></div>
+    <div class="score-mention" id="score-comm-mention"></div>
+  </div>
+</div>
+
+<script>
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwmuFnmiCe-740yAGdsZ4k9gcTsMdEJEuOBbrx6Njc7sDfOy3I0qpP8SvJ8Y9PpBM_7FQ/exec';
+
+// Réponses correctes
+const REPONSES = {
+  anim: { q1:'C', q2:'B', q3:'C', q4:'B', q5:'B', q6:'B', q7:'C', q8:'B', q9:'C', q10:'B', q11:'B', q12:'B', q13:'C', q14:'C', q15:'B', q16:'B', q17:'B', q18:'C', q19:'C', q20:'B' },
+  comm: { q1:'B', q2:'C', q3:'B', q4:'B', q5:'B', q6:'C', q7:'C', q8:'C', q9:'B', q10:'C', q11:'C', q12:'B', q13:'B', q14:'B', q15:'B', q16:'C', q17:'B', q18:'B', q19:'C', q20:'B' }
+};
+
+// Explications des bonnes réponses
+const EXPLICATIONS = {
+  anim: {
+    q1: "La voix et la diction sont les outils premiers de l'animateur radio — c'est ce que l'auditeur perçoit directement.",
+    q2: "Le débit correspond à la vitesse d'élocution. Un bon débit ni trop rapide ni trop lent est essentiel à l'antenne.",
+    q3: "C'est une comparaison car elle utilise le mot 'que' pour établir un rapport entre deux éléments.",
+    q4: "Une introduction professionnelle met en valeur l'invité dès le départ et donne le ton de l'émission.",
+    q5: "Le jingle est la signature sonore d'une émission, reconnaissable en quelques secondes.",
+    q6: "Adapter son registre signifie choisir un vocabulaire, un ton et des exemples accessibles à son public.",
+    q7: "'Avoir le bras long' signifie avoir des relations influentes, du pouvoir indirect.",
+    q8: "L'appel à l'action guide l'auditeur vers une action précise — c'est le lien entre l'émission et la boutique.",
+    q9: "Lire de façon monotone est le principal défaut à éviter — il faut donner de la vie au texte.",
+    q10: "'Pâmer' en vieux français signifiait s'évanouir. La déformation en 'pommes' est purement phonétique.",
+    q11: "Une explication claire avec un exemple concret et humoristique est idéale pour un public jeune.",
+    q12: "La bienveillance et la continuité de l'enregistrement sont la bonne approche avec les jeunes comédiens.",
+    q13: "L'autonomie et la proactivité sont essentielles dans un environnement de démarrage.",
+    q14: "Corriger avec bienveillance tout en maintenant le débat ouvert est la bonne posture d'animateur.",
+    q15: "Un CTA précis avec le nom de la page et le canal de contact est bien plus efficace qu'un vague appel.",
+    q16: "Le langage adapté aux tout-petits utilise des histoires concrètes, de l'humour et du mystère.",
+    q17: "3 à 5 minutes est la durée standard définie dans le cahier des charges d'Ondes d'Excellence.",
+    q18: "Reconnaître une erreur et la corriger publiquement renforce la crédibilité de l'émission.",
+    q19: "La fréquence de 3 fois par semaine est définie dans le cahier des charges de La Langue Vivante.",
+    q20: "La transparence et la proposition de solution sont les marques d'un professionnel responsable."
+  },
+  comm: {
+    q1: "Qualifier le prospect évite de perdre du temps sur des cibles non pertinentes ou sans budget.",
+    q2: "Reformuler l'objection prix en valeur ajoutée et proposer une alternative est la technique classique.",
+    q3: "Une objection bien traitée révèle souvent un intérêt réel du prospect — c'est une opportunité.",
+    q4: "Prévenir à l'avance et s'excuser montre le respect du temps du directeur — qualité essentielle en B2B.",
+    q5: "La valeur perçue (visibilité, prestige, participation des élèves) est le vrai argument de vente.",
+    q6: "4 écoles × 20 000 FCFA × 15 % = 12 000 FCFA/mois, récurrents tant que les écoles restent partenaires.",
+    q7: "L'écoute active va bien au-delà de simplement entendre — elle implique reformulation et questions ciblées.",
+    q8: "Identifier le dernier frein, proposer une relance datée et laisser le dossier optimise les chances de closing.",
+    q9: "Cette distinction est fondamentale en vente — le prospect devient client après la première transaction.",
+    q10: "L'objectif minimal de 3 contrats/mois est clairement défini dans votre cahier des charges.",
+    q11: "Laisser une trace écrite et planifier une relance transforme un refus en opportunité future.",
+    q12: "Analyser les refus pour progresser est la marque d'un commercial professionnel et résilient.",
+    q13: "Une bonne préparation multiplie le taux de conversion — elle montre le sérieux et le respect du prospect.",
+    q14: "La transparence combinée à la valorisation du statut de pionnier transforme un inconvénient en avantage.",
+    q15: "La combinaison terrain + réseau personnel + données officielles est la méthode la plus efficace.",
+    q16: "Proposer une alternative concrète à valeur démontrée est plus efficace qu'un refus ou un accord total.",
+    q17: "Le tableau de bord est l'outil de pilotage quotidien du commercial — indispensable pour atteindre ses objectifs.",
+    q18: "Un client satisfait est la meilleure source de recommandations et d'upselling — exploitez cette opportunité.",
+    q19: "La prime fixe de 5 000 FCFA par annonceur signé est définie dans votre contrat de collaboration.",
+    q20: "Un rapport honnête avec plan de rattrapage est bien plus professionnel que la dissimulation ou la démission."
+  }
+};
+
+// Timers
+let timers = {};
+function startTimer(type, duration = 1800) {
+  let remaining = duration;
+  const fillEl = document.getElementById(type + '-timer-fill');
+  const textEl = document.getElementById(type + '-timer-text');
+  timers[type] = setInterval(() => {
+    remaining--;
+    const m = Math.floor(remaining / 60).toString().padStart(2,'0');
+    const s = (remaining % 60).toString().padStart(2,'0');
+    textEl.textContent = `⏱️ Temps restant : ${m}:${s}`;
+    fillEl.style.width = (remaining / duration * 100) + '%';
+    if (remaining <= 300) fillEl.style.background = '#f44336';
+    if (remaining <= 0) {
+      clearInterval(timers[type]);
+      textEl.textContent = '⏱️ Temps écoulé !';
+      corrigerTest(type);
+    }
+  }, 1000);
+}
+
+// Suivi de progression
+document.querySelectorAll('input[type="radio"]').forEach(radio => {
+  radio.addEventListener('change', () => {
+    const type = radio.name.split('-')[0];
+    const answered = document.querySelectorAll(`input[name^="${type}-"]:checked`).length;
+    document.getElementById(type + '-progress').style.width = (answered / 20 * 100) + '%';
+  });
+});
+
+function showTab(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.test-container').forEach(t => t.classList.remove('active'));
+  document.querySelector('.tab.' + tab).classList.add('active');
+  document.getElementById('test-' + tab).classList.add('active');
+  if (!timers[tab]) startTimer(tab);
+}
+
+function corrigerTest(type) {
+  // Vérifier infos candidat
+  const nom = document.getElementById(type + '-nom').value.trim();
+  const prenom = document.getElementById(type + '-prenom').value.trim();
+  const tel = document.getElementById(type + '-tel').value.trim();
+  const ville = document.getElementById(type + '-ville').value.trim();
+  if (!nom || !prenom || !tel || !ville) {
+    alert('⚠️ Veuillez remplir vos informations personnelles avant de soumettre.');
+    return;
+  }
+
+  clearInterval(timers[type]);
+  const reponses = REPONSES[type];
+  const explications = EXPLICATIONS[type];
+  let score = 0;
+  const resultats = {};
+
+  for (let i = 1; i <= 20; i++) {
+    const q = 'q' + i;
+    const selected = document.querySelector(`input[name="${type}-${q}"]:checked`);
+    const card = document.getElementById(type + '-' + q);
+    const correcte = reponses[q];
+    const choisie = selected ? selected.value : null;
+    resultats[q] = choisie || 'Sans réponse';
+
+    // Colorier les options
+    card.querySelectorAll('.option label').forEach(label => {
+      const val = label.querySelector('input').value;
+      if (val === correcte) label.classList.add('correct-answer');
+      if (choisie === val && val !== correcte) label.classList.add('selected');
+      if (choisie === val && val === correcte) label.classList.add('selected');
+    });
+
+    if (choisie === correcte) {
+      score++;
+      card.classList.add('result-correct');
+      const fb = document.createElement('div');
+      fb.className = 'feedback correct';
+      fb.innerHTML = `✅ Bonne réponse !`;
+      const fbEx = document.createElement('div');
+      fbEx.className = 'feedback explication';
+      fbEx.textContent = '💡 ' + explications[q];
+      card.appendChild(fb);
+      card.appendChild(fbEx);
+    } else {
+      card.classList.add('result-wrong');
+      const fb = document.createElement('div');
+      fb.className = 'feedback wrong';
+      fb.innerHTML = `❌ Mauvaise réponse. La bonne réponse était : <strong>${correcte}</strong>`;
+      const fbEx = document.createElement('div');
+      fbEx.className = 'feedback explication';
+      fbEx.textContent = '💡 ' + explications[q];
+      card.appendChild(fb);
+      card.appendChild(fbEx);
+    }
+
+    // Désactiver les radios
+    card.querySelectorAll('input[type="radio"]').forEach(r => r.disabled = true);
+  }
+
+  // Désactiver le bouton
+  document.querySelector(`#test-${type} .submit-btn`).disabled = true;
+
+  // Calcul mention
+  const pct = (score / 20) * 100;
+  let mention, emoji, panelClass;
+  if (pct >= 80) { mention = "Excellent(e) — Candidature fortement recommandée"; emoji = "🏆"; panelClass = "success"; }
+  else if (pct >= 60) { mention = "Bien — Candidature recommandée avec réserves"; emoji = "👍"; panelClass = "moyen"; }
+  else { mention = "Insuffisant — Candidature non retenue à ce stade"; emoji = "❌"; panelClass = "fail"; }
+
+  // Afficher le score
+  const panel = document.getElementById('score-' + type);
+  panel.className = 'score-panel ' + panelClass;
+  panel.style.display = 'block';
+  document.getElementById('score-' + type + '-emoji').textContent = emoji;
+  document.getElementById('score-' + type + '-label').textContent = type === 'anim' ? 'Test Animateur(trice) Radio' : 'Test Agent Commercial';
+  document.getElementById('score-' + type + '-num').textContent = score + ' / 20';
+  document.getElementById('score-' + type + '-detail').textContent = `${score} bonnes réponses sur 20 — ${pct.toFixed(0)} %`;
+  document.getElementById('score-' + type + '-mention').textContent = mention;
+  panel.scrollIntoView({ behavior: 'smooth' });
+
+  // Envoyer vers Google Sheet
+  const data = {
+    type: 'test_' + type,
+    nom, prenom, tel, ville,
+    score, total: 20, pourcentage: pct.toFixed(0), mention,
+    ...resultats
+  };
+  fetch(APPS_SCRIPT_URL, {
+    method: 'POST', mode: 'no-cors',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }).catch(() => {});
+}
+
+// Démarrer le timer de l'onglet actif
+startTimer('anim');
+</script>
+</body>
+</html>
