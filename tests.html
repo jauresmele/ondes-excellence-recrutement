@@ -725,7 +725,7 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; color: #222; }
 </div>
 
 <script>
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwmuFnmiCe-740yAGdsZ4k9gcTsMdEJEuOBbrx6Njc7sDfOy3I0qpP8SvJ8Y9PpBM_7FQ/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxBqTQ4agxEexieiFV2i483v3QjzSink2hQPO291yrxr9qGOeZ4Tg-TAu6S2OGG63DHyg/exec';
 
 // Réponses correctes
 const REPONSES = {
@@ -907,7 +907,7 @@ function corrigerTest(type) {
     score, total: 20, pourcentage: pct.toFixed(0), mention,
     ...resultats
   };
-  fetch(https://script.google.com/macros/s/AKfycbxBqTQ4agxEexieiFV2i483v3QjzSink2hQPO291yrxr9qGOeZ4Tg-TAu6S2OGG63DHyg/exec, {
+  fetch(APPS_SCRIPT_URL, {
     method: 'POST', mode: 'no-cors',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
@@ -919,4 +919,3 @@ startTimer('anim');
 </script>
 </body>
 </html>
-    
